@@ -19,9 +19,9 @@ jobs:
           brew update
           brew install cmake ninja ccache
 
-      - name: Install Xcode Metal Toolchain
+      - name: Prepare Xcode Toolchain
         run: |
-          xcodebuild -downloadComponent MetalToolchain
+          xcodebuild -runFirstLaunch -checkForNewerComponents
 
       - name: Compile JavaScriptCore (macOS)
         run: |
