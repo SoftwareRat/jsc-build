@@ -19,9 +19,13 @@ jobs:
           brew update
           brew install cmake ninja ccache
 
+      - name: Install Xcode Metal Toolchain
+        run: |
+          xcodebuild -downloadComponent MetalToolchain
+
       - name: Compile JavaScriptCore (macOS)
         run: |
-          Tools/Scripts/build-jsc --jsc-only --release --cmakeargs="-GNinja"
+          Tools/Scripts/build-jsc --jsc-only --release --cmakeargs="-GNinja -DUSE_ISO_MALLOC=0"
 
       - name: Archive macOS Executable Binary
         uses: actions/upload-artifact@v4
