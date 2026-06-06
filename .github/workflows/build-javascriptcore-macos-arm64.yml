@@ -25,7 +25,7 @@ jobs:
 
       - name: Compile JavaScriptCore (macOS)
         run: |
-          Tools/Scripts/build-jsc --jsc-only --release --cmakeargs="-GNinja -DUSE_ISO_MALLOC=0"
+          Tools/Scripts/build-jsc --jsc-only --release --cmakeargs="-GNinja -DUSE_SYSTEM_MALLOC=ON"
 
       - name: Archive macOS Executable Binary
         uses: actions/upload-artifact@v4
