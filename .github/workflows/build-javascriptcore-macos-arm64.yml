@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14-arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +17,10 @@ jobs:
       - name: Install deps
         run: |
           brew install cmake ninja
+
+      - name: Clean
+        run: |
+          rm -rf WebKitBuild
 
       - name: Build JSC
         run: |
@@ -31,4 +35,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: jsc
-          path: WebKitBuild
+          path: |
+            WebKitBuild/JSCOnly/Release/bin/jsc
+            WebKitBuild/Release/bin/jsc
