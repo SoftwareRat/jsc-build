@@ -5,30 +5,54 @@ on:
 
 jobs:
   build-mac-arm64:
-    runs-on: macos-latest
+    runs-on: macos-15-arm64
 
     steps:
-      - name: Checkout Specific WebKit Branch
+      - name: Checkout WebKit
         uses: actions/checkout@v4
         with:
           repository: WebKit/WebKit
           ref: safari-7621.2.5.10-branch
+          fetch-depth: 0
 
-      - name: Install Build Tools via Homebrew
+      - name: Show Environment
+        run: |
+          sw_vers
+          xcodebuild -version
+          clang --version
+          sysctl machdep.cpu.brand_string
+
+      - name: Install Build Dependencies
         run: |
           brew update
-          brew install cmake ninja ccache
+          brew install cmake ninja python3 ccache
 
-      - name: Prepare Xcode Toolchain
+      - name: Configure Xcode
         run: |
-          xcodebuild -runFirstLaunch -checkForNewerComponents
+          sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -runFirstLaunch || true
 
-      - name: Compile JavaScriptCore (macOS)
+      - name: Build JavaScriptCore
         run: |
-          Tools/Scripts/build-jsc --jsc-only --release --cmakeargs="-GNinja -DUSE_ISO_MALLOC=0 -DUSE_SYSTEM_MALLOC=ON"
+          Tools/Scripts/build-jsc \
+            --jsc-only \
+            --release
 
-      - name: Archive macOS Executable Binary
+      - name: Debug Build Tree On Failure
+        if: failure()
+        run: |
+          find WebKitBuild -name CMakeCache.txt -print
+          find WebKitBuild -name build.ninja -print
+          find WebKitBuild -name '*.log' -print | head -50
+
+      - name: Locate JSC
+        run: |
+          find WebKitBuild -type f -name jsc
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: jsc-macos-arm64-7621
-          path: WebKitBuild/Release/bin/jsc
+          path: |
+            WebKitBuild/JSCOnly/Release/bin/jsc
+            WebKitBuild/Release/bin/jsc
