@@ -2,10 +2,11 @@ name: Build JavaScriptCore
 
 on:
   push:
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-14-arm64
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +23,10 @@ jobs:
         run: |
           rm -rf WebKitBuild
 
+      - name: Force ISO Malloc
+        run: |
+          sed -i '' 's/#define USE_ISO_MALLOC 0/#define USE_ISO_MALLOC 1/' Source/WTF/wtf/PlatformUse.h || true
+
       - name: Build JSC
         run: |
           export CFLAGS="-Wno-error=macro-redefined"
@@ -30,11 +35,10 @@ jobs:
 
       - name: Find binary
         run: |
-          find WebKitBuild -name jsc -type f
+          find WebKitBuild -name jsc -type f || true
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: jsc
-          path: |
-            WebKitBuild/JSCOnly/Release/bin/jsc
-            WebKitBuild/Release/bin/jsc
+          name: jsc-build-output
+          path: WebKitBuild
