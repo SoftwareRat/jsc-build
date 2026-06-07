@@ -23,15 +23,23 @@ jobs:
         run: |
           rm -rf WebKitBuild
 
-      - name: Force ISO Malloc
+      - name: Disable TZone
         run: |
-          sed -i '' 's/#define USE_ISO_MALLOC 0/#define USE_ISO_MALLOC 1/' Source/WTF/wtf/PlatformUse.h || true
+          grep -RIl "TZoneLog\|TZoneHeapManager" Source | while read f; do
+            echo "Checking $f"
+          done
+
+          find Source -name '*.h' -o -name '*.cpp' | while read f; do
+            sed -i '' 's/ENABLE_TZONE 1/ENABLE_TZONE 0/g' "$f" || true
+            sed -i '' 's/USE_TZONE 1/USE_TZONE 0/g' "$f" || true
+          done
 
       - name: Build JSC
         run: |
           export CFLAGS="-Wno-error=macro-redefined"
           export CXXFLAGS="-Wno-error=macro-redefined"
           export LDFLAGS="-framework Foundation -framework CoreFoundation -lobjc"
+
           Tools/Scripts/build-jsc --jsc-only --release
 
       - name: Find binary
